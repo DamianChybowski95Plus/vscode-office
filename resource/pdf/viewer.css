@@ -862,6 +862,13 @@ body::-webkit-scrollbar{width:4px!important;height:6px!important;}
   background-color: #F7F7F7;
 }
 
+@media (prefers-color-scheme: dark) {
+
+  .treeItems{
+    background-color: #343434;
+  }
+}
+
 
 #sidebarContainer {
   position: absolute;
@@ -925,6 +932,12 @@ html[dir="rtl"] #outerContainer.sidebarOpen #sidebarContainer {
   position: absolute;
   width: 100%;
   background-color: #F7F7F7;
+}
+@media (prefers-color-scheme: dark) {
+
+  #sidebarContent {
+  background-color: #343434;
+  }
 }
 html[dir="ltr"] #sidebarContent {
   left: 0;
@@ -3352,6 +3365,14 @@ a:focus > .thumbnail > .thumbnailSelectionRing {
           user-select: none;
 }
 
+@media (prefers-color-scheme: dark) {
+
+  #outlineView,
+  #attachmentsView {
+  background-color: #343434;
+  }
+}
+
 html[dir="ltr"] .treeWithDeepNesting > .treeItem,
 html[dir="ltr"] .treeItem > .treeItems {
   padding-left: 20px;
@@ -3560,7 +3581,7 @@ html[dir="rtl"] .treeItemToggler::before {
 @media (prefers-color-scheme: dark) {
 
   .treeItem.selected {
-  background-color: rgba(255, 255, 255, 1);
+  background-color: rgba(40, 40, 40, 1);
   }
 }
 

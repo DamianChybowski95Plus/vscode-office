@@ -2,7 +2,7 @@
 	"name": "vscode-typora",
 	"displayName": "Typora",
 	"description": "Edit markdown like typora in vscode.",
-	"version": "2.6.0",
+	"version": "2.6.7",
 	"publisher": "cweijan",
 	"icon": "images/typora.png",
 	"engines": {
@@ -430,6 +430,11 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Open markdown outline."
+				},
+				"vscode-office.previewCode": {
+					"type": "boolean",
+					"default": true,
+					"description": "Preview code in markdown."
 				},
 				"vscode-office.autoTheme": {
 					"type": "boolean",

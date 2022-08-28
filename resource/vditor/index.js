@@ -21,7 +21,8 @@ handler.on("open", (md) => {
         path: `${md.rootPath}/css/content-theme`
       },
       markdown: {
-        toc: true
+        toc: true,
+        codeBlockPreview: config.previewCode,
       },
       hljs: {
         style: 'dracula'
@@ -67,8 +68,16 @@ handler.on("open", (md) => {
 
 function addAutoTheme(){
   const css=`
-  * {
+* {
   border-color: var(--vscode-quickInputTitle-background) !important;
+}
+
+body[data-vscode-theme-kind="vscode-light"] .vditor-content hr{
+  background-color: var(--vscode-panel-border) !important;
+}
+
+body[data-vscode-theme-kind="vscode-dark"] .vditor-content hr{
+  background-color: var(--vscode-panel-border) !important;
 }
 
 .vditor-input{
@@ -85,7 +94,7 @@ function addAutoTheme(){
 
 
 .vditor-content code:not(.hljs) {
-  background-color: var(--vscode-tab-activeBackground) !important;
+  background-color: #2E2E2E !important;
 }
 
 .vditor-content,
