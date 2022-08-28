@@ -4,7 +4,7 @@ import { basename, extname, parse, resolve } from 'path';
 import { TextEncoder } from 'util';
 import * as vscode from 'vscode';
 import { Hanlder } from '../common/handler';
-import { Console } from '../common/Console';
+import { Output } from '../common/Output';
 import { Util } from '../common/util';
 import { tmpdir } from 'os';
 import { workspace } from 'vscode';
@@ -48,6 +48,7 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
 
         switch (ext) {
             case ".xlsx":
+            case ".xlsm":
             case ".xls":
             case ".csv":
             case ".ods":
@@ -127,7 +128,7 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
         });
 
         java.stderr.on('data', (data) => {
-            Console.log(data.toString("utf8"))
+            Output.log(data.toString("utf8"))
         });
 
 
@@ -196,8 +197,10 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
     private handleXlsx(uri: vscode.Uri, handler: Hanlder) {
         var enc = new TextEncoder();
         handler.on("init", async () => {
-            const content = await vscode.workspace.fs.readFile(uri)
-            handler.emit("open", { content, file: resolve(uri.fsPath), ext: extname(uri.fsPath) })
+            handler.emit("open", {
+                path: handler.panel.webview.asWebviewUri(uri).with({ query: `nonce=${Date.now().toString()}` }).toString(),
+                file: resolve(uri.fsPath), ext: extname(uri.fsPath)
+            })
         }).on("save", async (content) => {
             await vscode.workspace.fs.writeFile(uri, new Uint8Array(content))
             handler.emit("saveDone")
