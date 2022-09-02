@@ -80,6 +80,15 @@ body[data-vscode-theme-kind="vscode-dark"] .vditor-content hr{
   background-color: var(--vscode-panel-border) !important;
 }
 
+.dropdown-menu.show:before,.dropdown-item{
+  background-color: var(--vscode-editor-background) !important;
+  color: var(--vscode-editor-frontground) !important;
+}
+
+.dropdown-item:hover{
+  background: var(--vscode-menu-selectionBackground) !important;
+}
+
 .vditor-input{
   border:  1px solid var(--vscode-quickInputTitle-background);
 }
@@ -98,6 +107,10 @@ body[data-vscode-theme-kind="vscode-dark"] .vditor-content hr{
 }
 
 body[data-vscode-theme-kind="vscode-dark"] .vditor-content .vditor-wysiwyg__pre>code{
+  background-color: #313131 !important;
+}
+
+body[data-vscode-theme-kind="vscode-dark"] .vditor-content .vditor-wysiwyg__preview>code.hljs{
   background-color: #2E2E2E !important;
 }
 
