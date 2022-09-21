@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { autoClearCacheStorage } from './service/autoClearCacheStorage';
 import { JavaDecompilerProvider } from './provider/javaDecompilerProvider';
 import { OfficeEditorProvider } from './provider/officeEditorProvider';
 import { OfficeViewerProvider } from './provider/officeViewerProvider';
@@ -9,13 +10,14 @@ const httpExt = require('./bundle/extension');
 export function activate(context: vscode.ExtensionContext) {
 
 	httpExt.activate(context)
+	autoClearCacheStorage();
 
 	const viewOption = { webviewOptions: { retainContextWhenHidden: true, enableFindWidget: true } };
 	const markdownService = new MarkdownService(context);
 	const viewerInstance = new OfficeViewerProvider(context);
 	context.subscriptions.push(
 		vscode.commands.registerCommand('office.markdown.paste', () => { markdownService.loadClipboardImage() }),
-		vscode.commands.registerCommand('office.html.preview', HtmlService.previewHtml),
+		vscode.commands.registerCommand('office.html.preview', uri => HtmlService.previewHtml(uri, context)),
 		vscode.workspace.registerTextDocumentContentProvider('decompile_java', new JavaDecompilerProvider()),
 		vscode.window.registerCustomEditorProvider("cweijan.markdownViewer", new OfficeEditorProvider(context), viewOption),
 		vscode.window.registerCustomEditorProvider("cweijan.officeViewer", viewerInstance, viewOption),
