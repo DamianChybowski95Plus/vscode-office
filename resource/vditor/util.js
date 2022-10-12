@@ -116,7 +116,6 @@ export const openLink = () => {
         if (!e.ctrlKey && event.type != 'dblclick') {
             return;
         }
-        console.log(ele.src)
         if (ele.tagName == 'A') {
             handler.emit("openLink", ele.href)
         } else if (ele.tagName == 'IMG') {
@@ -160,26 +159,26 @@ export function onToolbarClick(editor) {
 }
 
 export const createContextMenu = (editor) => {
+    const menu = document.getElementById('context-menu')
     document.addEventListener("mousedown", e => {
         if (!e.target?.classList?.contains('dropdown-item')) {
-            $("#context-menu").removeClass("show").hide();
+            menu.classList.remove('show')
+            menu.style.display = 'none'
         }
     });
-    $('body').on('contextmenu', (e) => {
+    document.oncontextmenu = e => {
         e.stopPropagation();
         var top = e.pageY - 10;
         var left = e.pageX - 90;
-        $("#context-menu").css({
-            display: "block",
-            top: top,
-            left: left
-        }).addClass("show");
-    }).on("click", (e) => {
-        $("#context-menu").removeClass("show").hide();
-        let id = e.target.id;
-        if (!e.target.id) {
-            return;
-        }
+        menu.style.display = 'block'
+        menu.style.top = top + "px";
+        menu.style.left = left + "px";
+        menu.classList.add('show')
+    }
+    menu.onclick = e => {
+        menu.style.display = 'none'
+        menu.classList.remove('show')
+        const id = e.target.getAttribute("id");
         switch (id) {
             case "copy":
                 document.execCommand("copy")
@@ -197,11 +196,7 @@ export const createContextMenu = (editor) => {
                 vscodeEvent.emit('exportPdfToHtml')
                 break;
         }
-    });
-
-    $("#context-menu a").on("click", function () {
-        $(this).parent().removeClass("show").hide();
-    });
+    }
 }
 
 export const imageParser = (viewAbsoluteLocal) => {
@@ -245,8 +240,15 @@ export const autoSymbal = (editor) => {
         }
     }
     window.onkeydown = (e) => {
-        if (e.ctrlKey && e.code == "KeyV" && !e.shiftKey) {
-            if (document.getSelection()?.toString()) { document.execCommand("delete") }
+        if (e.ctrlKey && e.code == "KeyV") {
+            if (e.shiftKey) {
+                navigator.clipboard.readText().then(text => {
+                    if (!text) return;
+                    document.execCommand('insertText', false, text.trim());
+                })
+            } else {
+                if (document.getSelection()?.toString()) { document.execCommand("delete") }
+            }
             // vscodeEvent.emit('command', 'office.markdown.paste')
             e.stopPropagation()
             return;
@@ -276,28 +278,29 @@ export const autoSymbal = (editor) => {
     window.onresize = () => {
         document.getElementById('vditor').style.height = `${document.documentElement.clientHeight}px`
     }
-    window.onfocus = () => {
-        setTimeout(() => {
-            document.querySelector('.vditor-reset').focus()
-        }, 100)
-    }
-}
-
-let gotFocus = false;
-new MutationObserver(mutationList => {
-    if (gotFocus) return;
-    for (var mutation of mutationList) {
-        for (var node of mutation.addedNodes) {
-            if (!node.querySelectorAll) continue;
-            const editor = document.querySelector('.vditor-reset');
-            if (editor) {
-                editor.focus()
-                gotFocus = true;
-                return;
-            }
+    let app;
+    let needFocus = false;
+    window.onblur = () => {
+        if (!app) { app = document.querySelector('.vditor-reset'); }
+        // 纯文本没有offsetTop, 所以需要拿父节点
+        const targetNode = document.getSelection()?.baseNode?.parentNode;
+        // 如果编辑器现在没有获得焦点, 则无需重获焦点
+        if (!app?.contains(targetNode)) {
+            needFocus = false;
+            return;
+        }
+        // 判断是否需要聚焦
+        const curPosition = targetNode?.offsetTop ?? 0;
+        const appPosition = app?.scrollTop ?? 0;
+        if (appPosition - curPosition < window.innerHeight) {
+            needFocus = true;
         }
     }
-}).observe(document, {
-    childList: true,
-    subtree: true
-});
+    window.onfocus = () => {
+        if (!app) { app = document.querySelector('.vditor-reset'); }
+        if (needFocus) {
+            app.focus()
+            needFocus = false;
+        }
+    }
+}

@@ -84,16 +84,17 @@ export class OfficeEditorProvider implements vscode.CustomTextEditorProvider {
                 title: basename(uri.fsPath),
                 content, rootPath, config
             })
-            this.countStatus.text = `Line ${content.split(/\r\n|\r|\n/).length}    Count ${content.length}`
+            this.updateCount(content)
             this.countStatus.show()
         }).on("externalUpdate", e => {
             const updatedText = e.document.getText()?.replace(/\r/g, '');
             if (content == updatedText) return;
+            content = updatedText;
             handler.emit("update", updatedText)
         }).on("command", (command) => {
             vscode.commands.executeCommand(command)
         }).on("openLink", (uri: string) => {
-            const resReg=/https:\/\/file.*\.net/i;
+            const resReg = /https:\/\/file.*\.net/i;
             if (uri.match(resReg)) {
                 const localPath = uri.replace(resReg, '')
                 vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(localPath));
@@ -102,13 +103,13 @@ export class OfficeEditorProvider implements vscode.CustomTextEditorProvider {
             }
         }).on("img", (img) => {
             let rePath = vscode.workspace.getConfiguration("vscode-office").get<string>("pasterImgPath");
-            rePath = rePath.replace("${fileName}", parse(uri.fsPath).name.replace(/\s/g,'')).replace("${now}", new Date().getTime() + "")
+            rePath = rePath.replace("${fileName}", parse(uri.fsPath).name.replace(/\s/g, '')).replace("${now}", new Date().getTime() + "")
             const imagePath = isAbsolute(rePath) ? rePath : `${resolve(uri.fsPath, "..")}/${rePath}`.replace(/\\/g, "/");
             const dir = dirname(imagePath)
             if (!existsSync(dir)) {
                 mkdirSync(dir, { recursive: true })
             }
-            const fileName=parse(rePath).name;
+            const fileName = parse(rePath).name;
             fs.writeFileSync(imagePath, Buffer.from(img, 'binary'))
             console.log(img)
             vscode.env.clipboard.writeText(`![${fileName}](${rePath})`)
@@ -118,9 +119,10 @@ export class OfficeEditorProvider implements vscode.CustomTextEditorProvider {
         }).on("save", (newContent) => {
             content = newContent
             this.updateTextDocument(document, newContent)
+            this.updateCount(content)
         }).on("doSave", async (content) => {
             vscode.commands.executeCommand('workbench.action.files.save');
-            this.countStatus.text = `Line ${content.split(/\r\n|\r|\n/).length}    Count ${content.length}`
+            this.updateCount(content)
         }).on("export", () => {
             vscode.commands.executeCommand('workbench.action.files.save');
             new MarkdownService(this.context).exportPdf(uri)
@@ -131,11 +133,16 @@ export class OfficeEditorProvider implements vscode.CustomTextEditorProvider {
             config.update("openOutline", enable, true)
         })
 
+        const baseUrl = webview.asWebviewUri(folderPath).toString().replace(/\?.+$/, '').replace('https://git', 'https://file');
         webview.html = Util.buildPath(
             readFileSync(`${this.extensionPath}/resource/vditor/index.html`, 'utf8')
                 .replace("{{rootPath}}", rootPath)
-                .replace("{{baseUrl}}", webview.asWebviewUri(folderPath).toString()),
+                .replace("{{baseUrl}}", baseUrl),
             webview, contextPath);
+    }
+
+    private updateCount(content: string) {
+        this.countStatus.text = `Line ${content.split(/\r\n|\r|\n/).length}    Count ${content.length}`
     }
 
     private handlePuml(document: vscode.TextDocument, handler: Hanlder) {

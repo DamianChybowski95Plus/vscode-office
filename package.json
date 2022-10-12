@@ -2,7 +2,11 @@
 	"name": "vscode-typora",
 	"displayName": "Typora",
 	"description": "Edit markdown like typora in vscode.",
-	"version": "2.7.3",
+	"version": "2.7.5",
+	"name": "vscode-office",
+	"displayName": "Office Viewer(Markdown Editor)",
+	"description": "View word,excel files and using WYSIWYG editor for markdown.",
+	"version": "2.7.5",
 	"publisher": "cweijan",
 	"icon": "images/typora.png",
 	"engines": {
@@ -32,13 +36,6 @@
 		"onStartupFinished"
 	],
 	"main": "./out/extension.js",
-	"contributors": [
-		{
-			"name": "GrandSong",
-			"email": "grandsong@163.com",
-			"url": "https://github.com/grandsong"
-		}
-	],
 	"contributes": {
 		"themes": [
 			{
