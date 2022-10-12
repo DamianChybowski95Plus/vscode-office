@@ -3,10 +3,6 @@
 	"displayName": "Typora",
 	"description": "Edit markdown like typora in vscode.",
 	"version": "2.7.5",
-	"name": "vscode-office",
-	"displayName": "Office Viewer(Markdown Editor)",
-	"description": "View word,excel files and using WYSIWYG editor for markdown.",
-	"version": "2.7.5",
 	"publisher": "cweijan",
 	"icon": "images/typora.png",
 	"engines": {
