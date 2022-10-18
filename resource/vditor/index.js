@@ -1,4 +1,4 @@
-import { openLink, hotKeys, imageParser, toolbar, autoSymbal, onToolbarClick, createContextMenu } from "./util.js";
+import { openLink, hotKeys, imageParser, toolbar, autoSymbal, onToolbarClick, createContextMenu, scrollEditor } from "./util.js";
 
 handler.on("open", (md) => {
   const config = md.config;
@@ -8,6 +8,7 @@ handler.on("open", (md) => {
   const editor = new Vditor('vditor', {
     value: md.content,
     _lutePath: md.rootPath + '/lute.min.js',
+    cdn: 'https://unpkg.com/vscode-vditor@3.8.18',
     height: document.documentElement.clientHeight,
     outline: {
       enable: config.openOutline,
@@ -63,11 +64,12 @@ handler.on("open", (md) => {
   autoSymbal(editor);
   createContextMenu(editor)
   imageParser(config.viewAbsoluteLocal)
+  scrollEditor(md.scrollTop)
 }).emit("init")
 
 
-function addAutoTheme(){
-  const css=`
+function addAutoTheme() {
+  const css = `
 *:not(.katex,.katex *){
   border-color: var(--vscode-quickInputTitle-background) !important;
 }
