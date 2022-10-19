@@ -292,7 +292,7 @@
   margin: 1px auto -8px auto;
   position: relative;
   overflow: visible;
-  border: 9px solid transparent;
+  border: 6px solid transparent;
   background-clip: content-box;
   -o-border-image: url(images/shadow.png) 9 9 repeat;
      border-image: url(images/shadow.png) 9 9 repeat;
@@ -412,7 +412,7 @@
 }
 
 :root {
-  --sidebar-width: 200px;
+  --sidebar-width: 270px;
   --sidebar-transition-duration: 200ms;
   --sidebar-transition-timing-function: ease;
   --loadingBar-end-offset: 0;
@@ -875,6 +875,7 @@ body::-webkit-scrollbar{width:4px!important;height:6px!important;}
   top: 32px;
   bottom: 0;
   width: 270px;
+  width: var(--sidebar-width,270px);
   visibility: hidden;
   z-index: 100;
   border-top: 1px solid rgba(51, 51, 51, 1);
@@ -3386,7 +3387,7 @@ html[dir="rtl"] .treeItem > .treeItems {
 .treeItem > a {
   padding-left: 20px !important;
   font-size: 14px;
-  line-height: 30px;
+  line-height: 24px;
   font-family: '微软雅黑';
   outline: none;
   text-decoration: none;
@@ -3476,7 +3477,7 @@ html[dir="rtl"] .treeItemToggler {
   float: right;
 }
 html[dir="ltr"] .treeItemToggler::before {
-  right: 4px;
+  top: 3px;
 }
 html[dir="rtl"] .treeItemToggler::before {
   left: 4px;

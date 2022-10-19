@@ -7308,14 +7308,11 @@ class PDFOutlineViewer {
     }
   }
 
-  _addToggleButton(div, {
-    count,
-    items
-  }) {
+  _addToggleButton(div, hide) {
     const toggler = document.createElement("div");
     toggler.className = "treeItemToggler";
 
-    if (count < 0 && Math.abs(count) === items.length) {
+    if (hide) {
       toggler.classList.add("treeItemsHidden");
     }
 
@@ -7399,7 +7396,7 @@ class PDFOutlineViewer {
         if (item.items.length > 0) {
           hasAnyNesting = true;
 
-          this._addToggleButton(div, item);
+          this._addToggleButton(div, levelData.parent?.parentNode!=null);
 
           const itemsDiv = document.createElement("div");
           itemsDiv.className = "treeItems";
@@ -7413,6 +7410,9 @@ class PDFOutlineViewer {
         levelData.parent.appendChild(div);
         outlineCount++;
       }
+    }
+    if(outlineCount>1){
+      PDFViewerApplication.pdfSidebar.switchView(2, true);
     }
 
     if (hasAnyNesting) {
@@ -12714,7 +12714,7 @@ document.webL10n = function (window, document, undefined) {
     var data = gL10nData[key];
 
     if (!data) {
-      console.warn('#' + key + ' is undefined.');
+      // console.warn('#' + key + ' is undefined.');
 
       if (!fallback) {
         return null;
@@ -12779,7 +12779,7 @@ document.webL10n = function (window, document, undefined) {
     var data = getL10nData(l10n.id, l10n.args);
 
     if (!data) {
-      console.warn('#' + l10n.id + ' is undefined.');
+      // console.warn('#' + l10n.id + ' is undefined.');
       return;
     }
 
