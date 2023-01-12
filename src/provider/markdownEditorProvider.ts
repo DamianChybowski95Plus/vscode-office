@@ -1,19 +1,16 @@
-import * as fs from 'fs';
-import { existsSync, mkdirSync, readFileSync } from 'fs';
-import { basename, dirname, extname, isAbsolute, parse, resolve } from 'path';
-import * as util from 'util';
+import { adjustImgPath, getWorkspacePath, wrieteFile } from '@/common/fileUtil';
+import { readFileSync } from 'fs';
+import { basename, isAbsolute, parse, resolve } from 'path';
 import * as vscode from 'vscode';
-import { MessageOptions } from 'vscode';
 import { Hanlder } from '../common/handler';
 import { Util } from '../common/util';
 import { Holder } from '../service/markdown/holder';
 import { MarkdownService } from '../service/markdownService';
-const streamPipeline = util.promisify(require('stream').pipeline);
 
 /**
  * support view and edit office files.
  */
-export class OfficeEditorProvider implements vscode.CustomTextEditorProvider {
+export class MarkdownEditorProvider implements vscode.CustomTextEditorProvider {
 
     private extensionPath: string;
     private countStatus: vscode.StatusBarItem;
@@ -70,8 +67,9 @@ export class OfficeEditorProvider implements vscode.CustomTextEditorProvider {
             const scrollTop = this.state.get(`scrollTop_${document.uri.fsPath}`, 0);
             handler.emit("open", {
                 title: basename(uri.fsPath),
-                content, rootPath, config,
-                scrollTop
+                config, scrollTop,
+                language: vscode.env.language,
+                rootPath, content
             })
             this.updateCount(content)
             this.countStatus.show()
@@ -94,17 +92,11 @@ export class OfficeEditorProvider implements vscode.CustomTextEditorProvider {
         }).on("scroll", ({ scrollTop }) => {
             this.state.update(`scrollTop_${document.uri.fsPath}`, scrollTop)
         }).on("img", (img) => {
-            let rePath = vscode.workspace.getConfiguration("vscode-office").get<string>("pasterImgPath");
-            rePath = rePath.replace("${fileName}", parse(uri.fsPath).name.replace(/\s/g, '')).replace("${now}", new Date().getTime() + "")
-            const imagePath = isAbsolute(rePath) ? rePath : `${resolve(uri.fsPath, "..")}/${rePath}`.replace(/\\/g, "/");
-            const dir = dirname(imagePath)
-            if (!existsSync(dir)) {
-                mkdirSync(dir, { recursive: true })
-            }
-            const fileName = parse(rePath).name;
-            fs.writeFileSync(imagePath, Buffer.from(img, 'binary'))
-            console.log(img)
-            vscode.env.clipboard.writeText(`![${fileName}](${rePath})`)
+            const { relPath, fullPath } = adjustImgPath(uri)
+            const imagePath = isAbsolute(fullPath) ? fullPath : `${resolve(uri.fsPath, "..")}/${relPath}`.replace(/\\/g, "/");
+            wrieteFile(imagePath, Buffer.from(img, 'binary'))
+            const fileName = parse(relPath).name;
+            vscode.env.clipboard.writeText(`![${fileName}](${relPath})`)
             vscode.commands.executeCommand("editor.action.clipboardPasteAction")
         }).on("editInVSCode", () => {
             vscode.commands.executeCommand('vscode.openWith', uri, "default", vscode.ViewColumn.Beside);
@@ -117,17 +109,22 @@ export class OfficeEditorProvider implements vscode.CustomTextEditorProvider {
             this.updateCount(content)
         }).on("export", () => {
             vscode.commands.executeCommand('workbench.action.files.save');
-            new MarkdownService(this.context).exportPdf(uri)
-        }).on("exportPdfToHtml", () => {
+            new MarkdownService(this.context).exportMarkdown(uri)
+        }).on("exportMdToDocx", () => {
             vscode.commands.executeCommand('workbench.action.files.save');
-            new MarkdownService(this.context).exportPdfToHtml(uri)
+            new MarkdownService(this.context).exportMarkdown(uri, 'docx')
+        }).on("exportMdToHtml", () => {
+            vscode.commands.executeCommand('workbench.action.files.save');
+            new MarkdownService(this.context).exportMarkdown(uri, 'html')
         }).on("theme", () => {
             vscode.commands.executeCommand('workbench.action.selectTheme');
         }).on("saveOutline", (enable) => {
             config.update("openOutline", enable, true)
         })
 
-        const baseUrl = webview.asWebviewUri(folderPath).toString().replace(/\?.+$/, '').replace('https://git', 'https://file');
+        const basePath = vscode.workspace.getConfiguration("vscode-office").get<boolean>("workspacePathAsImageBasePath") ?
+            vscode.Uri.file(getWorkspacePath(folderPath)) : folderPath;
+        const baseUrl = webview.asWebviewUri(basePath).toString().replace(/\?.+$/, '').replace('https://git', 'https://file');
         webview.html = Util.buildPath(
             readFileSync(`${this.extensionPath}/resource/vditor/index.html`, 'utf8')
                 .replace("{{rootPath}}", rootPath)

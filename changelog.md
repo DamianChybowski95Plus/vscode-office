@@ -1,5 +1,55 @@
 # Change log
 
+# 2.9.5 2023-1-12
+
+- 更新主题的editorInlayHint颜色.
+- Markdown:
+  - 代码块预览增加行号显示.
+  - 支持配置代码块颜色样式.
+  - 粘贴图片路径增加workspaceDir变量.
+  - 修复无法导出PDF.
+  - 修复无法显示绝对路径的图片.
+
+# 2.9.4 2022-12-20
+
+- 调整代码块颜色.
+- 支持设置导出pdf的chromium路径.
+
+# 2.9.3 2022-12-10
+
+- 修复Pdf部分字体无法加载.
+- QuickItem和菜单的border颜色优化.
+
+# 2.9.2 2022-12-6
+
+- 修复表格工具栏消失.
+- 保存xlsx时增加确认框.
+- 导出Html和docx时不生成目录.
+- 修复图片过多时无法显示图片文件名.
+
+# 2.9.1 2022-11-23
+
+- 调整markdown编辑器小屏下的大纲宽度
+- Markdown转换的Pdf调整页面边距.
+
+# 2.9.0 2022-11-9
+
+- Speed up extension activation.
+
+# 2.8.1 2022-10-29
+
+- Fix preview html unable to load images.
+- Markdown:
+  - Support export to docx.
+  - Fix hr can not display on dark theme.
+  - Edit math formulas using different background colors.
+  - Fix export pdf not rendering math formulas that start or end with spaces.
+
+# 2.8.0 2022-10-24
+
+- Change markdown editor default language to english.
+- Supporting change of language for editor [en_US, ja_JP, ko_KR, ru_RU, zh_CN, zh_TW]
+
 # 2.7.9 2022-10-23
 
 - 修复小屏下工具栏丢失.

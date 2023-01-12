@@ -1,4 +1,3 @@
-const puppeteer = require("puppeteer-core")
 const fs = require("fs")
 const os = require("os")
 const path = require("path")
@@ -9,6 +8,11 @@ const isDev = process.argv.indexOf('--type=extensionHost') >= 0;
 export async function exportHtml(exportFilePath, data) {
     console.log("[pretty-md-pdf] Exported to file: " + exportFilePath)
     fs.writeFileSync(exportFilePath, data, "utf-8")
+}
+
+export async function exportDocx(exportFilePath, data) {
+    console.log("[pretty-md-pdf] Exported to file: " + exportFilePath)
+    fs.writeFileSync(exportFilePath, await require("vscode-html-to-docx")(data, '', {}, ''))
 }
 
 /*
@@ -24,13 +28,10 @@ export async function exportByType(filePath, data, type, config) {
     if (type == "html") {
         exportHtml(targetFilePath, data)
         return
-    }
-
-    if (!checkPuppeteerBinary(config)) {
-        showErrorMessage("Chromium or Chrome does not exist! \n")
+    } else if (type == "docx") {
+        exportDocx(targetFilePath, data)
         return
     }
-
 
     let tmpfilename = path.join(isDev ? originPath.dir : os.tmpdir(), originPath.name + "_tmp.html")
     exportHtml(tmpfilename, data)
@@ -38,6 +39,7 @@ export async function exportByType(filePath, data, type, config) {
         executablePath: config["executablePath"] || undefined
     }
 
+    const puppeteer = require("puppeteer-core")
     let browser = await puppeteer.launch(options).catch(error => {
         showErrorMessage("puppeteer.launch()", error)
     })
@@ -49,38 +51,16 @@ export async function exportByType(filePath, data, type, config) {
     });
 
     // generate pdf
-    // https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pagepdfoptions
     if (type == "pdf") {
-        // If width or height option is set, it overrides the format option.
-        // In order to set the default value of page size to A4, we changed it from the specification of puppeteer.
-        let width_option = config["width"] || ""
-        let height_option = config["height"] || ""
-        let format_option = ""
-        if (!width_option && !height_option) {
-            format_option = config["format"] || "A4"
-        }
-        let landscape_option
-        if (config["orientation"] == "landscape") {
-            landscape_option = true
-        } else {
-            landscape_option = false
-        }
-        let options = {
-            scale: config["scale"],
-            displayHeaderFooter: config["displayHeaderFooter"],
-            headerTemplate: config["headerTemplate"] || "",
-            footerTemplate: config["footerTemplate"] || "",
-            printBackground: config["printBackground"],
-            landscape: landscape_option,
-            pageRanges: config["pageRanges"] || "",
-            format: format_option,
-            width: config["width"] || "",
-            height: config["height"] || "",
+        // https://pptr.dev/api/puppeteer.pdfoptions
+        const options = {
+            format: config["format"] || "A4",
+            printBackground: config["printBackground"] || true,
             margin: {
-                top: config["margin"]["top"] || "",
-                right: config["margin"]["right"] || "",
-                bottom: config["margin"]["bottom"] || "",
-                left: config["margin"]["left"] || ""
+                top: config["margin"]["top"],
+                right: config["margin"]["right"],
+                bottom: config["margin"]["bottom"],
+                left: config["margin"]["left"]
             }
         }
         const pdf = await page.pdf(options).catch(error => {
@@ -104,26 +84,6 @@ export async function exportByType(filePath, data, type, config) {
 
     console.log("[pretty-md-pdf] Exported to file: " + targetFilePath)
 
-}
-
-function checkPuppeteerBinary(config) {
-    try {
-        // settings.json
-        let executablePath = config["executablePath"] || ""
-        if (isExistsPath(executablePath)) {
-            return true
-        }
-
-        // bundled Chromium
-        executablePath = puppeteer.executablePath()
-        if (isExistsPath(executablePath)) {
-            return true
-        } else {
-            return false
-        }
-    } catch (error) {
-        showErrorMessage("checkPuppeteerBinary()", error)
-    }
 }
 
 function showErrorMessage(msg, error) {

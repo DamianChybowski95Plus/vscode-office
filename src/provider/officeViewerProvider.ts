@@ -8,7 +8,6 @@ import { Output } from '../common/Output';
 import { Util } from '../common/util';
 import { tmpdir } from 'os';
 import { workspace } from 'vscode';
-import mammoth from "mammoth";
 
 /**
  * support view office files
@@ -91,7 +90,7 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
     }
 
     private handleDocx(uri: vscode.Uri, webview: vscode.Webview) {
-        mammoth.convertToHtml({ path: uri.fsPath })
+        require("mammoth").convertToHtml({ path: uri.fsPath })
             .then((result: any) => {
                 console.debug(result.messages)
                 webview.html =
@@ -163,21 +162,20 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
 
 
     private handlePdf(uri: vscode.Uri, webview: vscode.Webview) {
-        webview.html = Util.buildPath(
-            readFileSync(this.extensionPath + "/resource/pdf/viewer.html", 'utf8').replace("{{content}}",
-                JSON.stringify({
-                    path: webview.asWebviewUri(uri).with({ query: `nonce=${Date.now().toString()}` }).toString(),
-                    defaults: {
-                        cursor: "select",
-                        scale: "auto",
-                        sidebar: true,
-                        scrollMode: "vertical",
-                        spreadMode: "none",
-                    },
-                }).replace(/"/g, '&quot;')
-            ),
-            webview, this.extensionPath + "/resource/pdf"
-        );
+        const baseUrl = webview.asWebviewUri(vscode.Uri.file(this.extensionPath + "/resource/pdf"))
+            .toString().replace(/\?.+$/, '').replace('https://git', 'https://file');
+        const config = JSON.stringify({
+            path: webview.asWebviewUri(uri).with({ query: `nonce=${Date.now().toString()}` }).toString(),
+            defaults: {
+                cursor: "select",
+                scale: "auto",
+                sidebar: true,
+                scrollMode: "vertical",
+                spreadMode: "none",
+            }
+        }).replace(/"/g, '&quot;');
+        webview.html = readFileSync(this.extensionPath + "/resource/pdf/viewer.html", 'utf8')
+            .replace("{{baseUrl}}", baseUrl).replace("{{content}}", config);
     }
 
     private handleFont(document: vscode.CustomDocument, handler: Hanlder) {
@@ -201,8 +199,10 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
                 file: resolve(uri.fsPath), ext: extname(uri.fsPath)
             })
         }).on("save", async (content) => {
-            await vscode.workspace.fs.writeFile(uri, new Uint8Array(content))
-            handler.emit("saveDone")
+            Util.confirm(`Save confirm`, 'Are you sure you want to save? this will lose all formatting.', async () => {
+                await vscode.workspace.fs.writeFile(uri, new Uint8Array(content))
+                handler.emit("saveDone")
+            })
         }).on("saveCsv", async (content) => {
             await vscode.workspace.fs.writeFile(uri, enc.encode(content))
             handler.emit("saveDone")

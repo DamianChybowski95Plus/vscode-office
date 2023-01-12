@@ -469,6 +469,7 @@
   border-radius: 3px;
   box-sizing: border-box;
   font-family: "Helvetica Neue", "Luxi Sans", "DejaVu Sans", "Hiragino Sans GB", "Microsoft Yahei", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", "Android Emoji", "EmojiSymbols";
+  background-color: var(--toolbar-background-color);
 }
 .vditor .vditor-copy {
   z-index: auto;
@@ -1210,6 +1211,7 @@
   width: 0;
   height: 0;
 }
+
 .vditor-outline {
   width: 250px;
   border-right: 1px solid var(--border-color);
@@ -1217,6 +1219,13 @@
   display: none;
   overflow: auto;
 }
+
+@media (max-width: 992px) {
+  .vditor-outline {
+    width: 150px;
+  }
+}
+
 .vditor-outline--right {
   border-right: 0;
   border-left: 1px solid var(--border-color);

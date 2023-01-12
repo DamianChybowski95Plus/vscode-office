@@ -61,7 +61,6 @@ export const toolbar = [
     "italic",
     "strike",
     "link",
-    "emoji",
     "|",
     {
         tipPosition: 's',
@@ -144,7 +143,7 @@ export const openLink = () => {
     content.addEventListener('click', clickCallback);
     document.querySelector(".vditor-reset").addEventListener("scroll", e => {
         // 滚动有偏差
-        handler.emit("scroll", { scrollTop: e.target.scrollTop-70 })
+        handler.emit("scroll", { scrollTop: e.target.scrollTop - 70 })
     });
     document.querySelector(".vditor-ir").addEventListener('click', e => {
         let ele = e.target;
@@ -190,8 +189,8 @@ export const createContextMenu = (editor) => {
     });
     document.oncontextmenu = e => {
         e.stopPropagation();
-        var top = e.pageY - 10;
-        var left = e.pageX - 90;
+        var top = e.pageY;
+        var left = e.pageX + 10;
         menu.style.display = 'block'
         menu.style.top = top + "px";
         menu.style.left = left + "px";
@@ -213,9 +212,13 @@ export const createContextMenu = (editor) => {
                 vscodeEvent.emit("save", editor.getValue())
                 vscodeEvent.emit('export')
                 break;
+            case "exportDocx":
+                vscodeEvent.emit("save", editor.getValue())
+                vscodeEvent.emit('exportMdToDocx')
+                break;
             case "exportHtml":
                 vscodeEvent.emit("save", editor.getValue())
-                vscodeEvent.emit('exportPdfToHtml')
+                vscodeEvent.emit('exportMdToHtml')
                 break;
         }
     }
@@ -231,8 +234,8 @@ export const imageParser = (viewAbsoluteLocal) => {
                 for (const img of imgs) {
                     const url = img.src;
                     if (url.startsWith("http")) { continue; }
-                    if (url.startsWith("vscode-webview-resource") && url.includes("file///")) {
-                        img.src = `https://file+.vscode-resource.vscode-cdn.net/${url.split("file///")[1]}`
+                    if (url.startsWith("vscode-webview-resource") || url.includes("file:///")) {
+                        img.src = `https://file+.vscode-resource.vscode-cdn.net/${url.split("file:///")[1]}`
                     }
                 }
             }

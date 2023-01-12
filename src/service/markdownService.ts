@@ -1,79 +1,71 @@
+import { adjustImgPath } from "@/common/fileUtil";
 import { Output } from "@/common/Output";
 import { spawn } from 'child_process';
 import chromeFinder from 'chrome-finder';
+import { fileTypeFromFile } from 'file-type';
 import { copyFileSync, existsSync, lstatSync, mkdirSync, renameSync } from 'fs';
 import { homedir } from 'os';
-import path, { dirname, extname, isAbsolute, join, parse, resolve } from 'path';
+import path, { dirname, extname, isAbsolute, join, parse } from 'path';
 import * as vscode from 'vscode';
 import { Holder } from './markdown/holder';
 import { convertMd } from "./markdown/markdown-pdf";
-import { fileTypeFromFile } from 'file-type';
+
+export type ExportType = 'pdf' | 'html' | 'docx';
 
 export class MarkdownService {
 
     constructor(private context: vscode.ExtensionContext) {
     }
 
-    public async exportPdfToHtml(uri: vscode.Uri) {
-        await convertMd({ markdownFilePath: uri.fsPath, config: this.getConfig('html') })
-        vscode.window.showInformationMessage("Export markdown to html success!")
-    }
-
-    public async exportPdf(uri: vscode.Uri) {
+    /**
+     * export markdown to another type
+     * @param type pdf, html, docx 
+     */
+    public async exportMarkdown(uri: vscode.Uri, type: ExportType = 'pdf') {
         try {
-            vscode.window.showInformationMessage("Starting export markdown to pdf.")
-            await convertMd({ markdownFilePath: uri.fsPath, config: this.getConfig() })
-            vscode.window.showInformationMessage("Export markdown to pdf success!")
+            if (type == 'pdf') {
+                // 其他类型不用, 导出速度很快
+                vscode.window.showInformationMessage(`Starting export markdown to ${type}.`)
+            }
+            await convertMd({ markdownFilePath: uri.fsPath, config: this.getConfig(type) })
+            vscode.window.showInformationMessage(`Export markdown to ${type} success!`)
         } catch (error) {
             Output.log(error)
         }
     }
 
-    public getConfig(type?: string) {
+    public getConfig(type: string = 'pdf') {
+        const config = vscode.workspace.getConfiguration("vscode-office");
+        const top = config.get("pdfMarginTop")
         return {
-            "type": type || "pdf",
-            "outputDirectory": "",
-            "outputDirectoryRelativePathFile": false,
+            type,
             "styles": [],
-            "stylesRelativePathFile": false,
-            "includeDefaultStyles": true,
-            "highlight": true,
-            "highlightStyle": "",
-            "breaks": false,
-            "markdown-it-include": true,
+            // chromium path
             "executablePath": this.getChromiumPath(),
-            "scale": 1,
-            "displayHeaderFooter": true,
-            "headerTemplate": "<div style=\"font-size: 9px; margin-left: 1cm;\"> <span class='title'></span></div> <div style=\"font-size: 9px; margin-left: auto; margin-right: 1cm; \"> <span class='date'></span></div>",
-            "footerTemplate": "<div style=\"font-size: 9px; margin: 0 auto;\"> <span class='pageNumber'></span> / <span class='totalPages'></span></div>",
+            // Set `true` to convert `\n` in paragraphs into `<br>`.
+            "breaks": false,
+            // pdf print option
             "printBackground": true,
-            "orientation": "portrait",
-            "pageRanges": "",
-            "format": "A4",
-            "width": "",
-            "height": "",
-            "margin": "1cm",
-            "quality": 100,
-            "clip": {
-                "height": null
-            },
-            "omitBackground": false
+            format: "A4",
+            margin: { top }
         };
     }
 
-    private paths: { [index: string]: string } = {
-        stable: "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-        beta: "C:\\Program Files (x86)\\Microsoft\\Edge Beta\\Application\\msedge.exe",
-        dev: "C:\\Program Files (x86)\\Microsoft\\Edge Dev\\Application\\msedge.exe",
-        canary: join(homedir(), "AppData\\Local\\Microsoft\\Edge SxS\\Application\\msedge.exe"),
-        linux: "/usr/bin/microsoft-edge",
-    }
+    private paths: string[] = [
+        "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+        "C:\\Program Files (x86)\\Microsoft\\Edge Beta\\Application\\msedge.exe",
+        "C:\\Program Files (x86)\\Microsoft\\Edge Dev\\Application\\msedge.exe",
+        join(homedir(), "AppData\\Local\\Microsoft\\Edge SxS\\Application\\msedge.exe"),
+        "/Applications/Microsoft/Edge.app",
+        "/usr/bin/microsoft-edge",
+    ]
 
     private getChromiumPath() {
-        for (const pathName in this.paths) {
-            const path = this.paths[pathName];
+        const chromiumPath = vscode.workspace.getConfiguration("vscode-office").get<string>("chromiumPath")
+        const paths = [chromiumPath, ...this.paths]
+        for (const path of paths) {
             if (existsSync(path)) {
-                console.debug(`using edge path is ${path}`)
+                console.debug(`using chromium path is ${path}`)
                 return path;
             }
         }
@@ -99,25 +91,24 @@ export class MarkdownService {
             return
         }
 
-        const uri: vscode.Uri = document.uri;
-        let relPath = vscode.workspace.getConfiguration("vscode-office").get<string>("pasterImgPath");
-        relPath = relPath.replace("${fileName}", parse(uri.fsPath).name.replace(/\s/g, '')).replace("${now}", new Date().getTime() + "")
-        const absolutePath = isAbsolute(relPath) ? relPath : `${dirname(uri.fsPath)}/${relPath}`.replace(/\\/g, "/");
-        this.createImgDir(absolutePath);
-        this.saveClipboardImageToFileAndGetPath(absolutePath, async (savedImagePath) => {
+        const uri = document.uri;
+        let { relPath, fullPath } = adjustImgPath(uri)
+        const imagePath = isAbsolute(fullPath) ? fullPath : `${dirname(uri.fsPath)}/${relPath}`.replace(/\\/g, "/");
+        this.createImgDir(imagePath);
+        this.saveClipboardImageToFileAndGetPath(imagePath, async (savedImagePath) => {
             if (!savedImagePath) return;
             if (savedImagePath === 'no image') {
                 vscode.window.showErrorMessage('There is not an image in the clipboard.');
                 return;
             }
-            this.copyFromPath(savedImagePath, absolutePath);
+            this.copyFromPath(savedImagePath, imagePath);
             const editor = vscode.window.activeTextEditor;
             const imgName = parse(relPath).name;
-            const oldExt = extname(absolutePath)
-            const { ext = "png" } = (await fileTypeFromFile(absolutePath)) ?? {};
+            const oldExt = extname(imagePath)
+            const { ext = "png" } = (await fileTypeFromFile(imagePath)) ?? {};
             if (oldExt != `.${ext}`) {
                 relPath = relPath.replace(oldExt, `.${ext}`)
-                renameSync(absolutePath, absolutePath.replace(oldExt, `.${ext}`))
+                renameSync(imagePath, imagePath.replace(oldExt, `.${ext}`))
             }
             if (editor) {
                 editor?.edit(edit => {

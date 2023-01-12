@@ -1,9 +1,9 @@
 import { openLink, hotKeys, imageParser, toolbar, autoSymbal, onToolbarClick, createContextMenu, scrollEditor } from "./util.js";
 
 handler.on("open", (md) => {
-  const config = md.config;
+  const { config, language } = md;
   if (config.autoTheme) {
-    addAutoTheme()
+    addAutoTheme(md.rootPath)
   }
   const editor = new Vditor('vditor', {
     value: md.content,
@@ -15,6 +15,7 @@ handler.on("open", (md) => {
       position: 'left',
     },
     mode: 'wysiwyg',
+    lang: language == 'zh-cn' ? 'zh_CN' : config.editorLanguage,
     icon: "material",
     tab: '\t',
     preview: {
@@ -26,7 +27,8 @@ handler.on("open", (md) => {
         codeBlockPreview: config.previewCode,
       },
       hljs: {
-        style: 'dracula'
+        style: config.previewCodeHighlight.style,
+        lineNumber: config.previewCodeHighlight.showLineNumber
       },
       extPath: md.rootPath,
       math: {
@@ -68,87 +70,10 @@ handler.on("open", (md) => {
 }).emit("init")
 
 
-function addAutoTheme() {
-  const css = `
-*:not(.katex,.katex *){
-  border-color: var(--vscode-quickInputTitle-background) !important;
-}
-
-body[data-vscode-theme-kind="vscode-light"] .vditor-content hr{
-  background-color: var(--vscode-panel-border) !important;
-}
-
-body[data-vscode-theme-kind="vscode-dark"] .vditor-content hr{
-  background-color: var(--vscode-panel-border) !important;
-}
-
-.dropdown-menu.show:before,.dropdown-item{
-  background-color: var(--vscode-editor-background) !important;
-  color: var(--vscode-editor-frontground) !important;
-}
-
-.dropdown-item:hover{
-  background: var(--vscode-menu-selectionBackground) !important;
-}
-
-.vditor-input{
-  border:  1px solid var(--vscode-quickInputTitle-background);
-}
-
-.vditor-toolbar {
-  background-color: var(--vscode-editor-background);
-}
-
-.vditor-toolbar__item .vditor-tooltipped {
-  color: var(--vscode-editor-foreground)
-}
-
-
-.vditor-content code:not(.hljs) {
-  background-color: var(--vscode-tab-activeBackground) !important;
-}
-
-body[data-vscode-theme-kind="vscode-dark"] .vditor-content .vditor-wysiwyg__pre>code{
-  background-color: #313131 !important;
-}
-
-body[data-vscode-theme-kind="vscode-dark"] .vditor-content .vditor-wysiwyg__preview>code.hljs{
-  background-color: #2E2E2E !important;
-}
-
-body[data-vscode-theme-name='One Dark Modern'] .vditor-toolbar {
-  background-color: var(--vscode-editorSuggestWidget-background) !important;
-}
-
-
-body[data-vscode-theme-name='One Dark Modern'] .vditor-content .vditor-wysiwyg__preview>code{
-  background-color: var(--vscode-editorSuggestWidget-background) !important;
-}
-
-body[data-vscode-theme-name='One Dark Modern'] .vditor-content,
-body[data-vscode-theme-name='One Dark Modern'] .vditor-content *:not(.hljs, .hljs *,.katex,.katex *, a) {
-  background-color: var(--vscode-editorSuggestWidget-background) !important;
-  color: #abb2bf !important;
-}
-
-.vditor-content .vditor-wysiwyg__preview>code{
-  background-color: var(--vscode-editor-background) !important;
-}
-
-.vditor-content,
-.vditor-content *:not(.hljs, .hljs *,.katex,.katex *, a) {
-  background-color: var(--vscode-editor-background) !important;
-  color: var(--vscode-editor-foreground) !important;
-}
-
-.vditor-hint button:not(.vditor-menu--disabled):hover{
-  background-color: var(--vscode-editorSuggestWidget-background) !important;
-}
-.vditor-content .vditor-outline li > span >span:hover {
-  color: var(--vscode-terminal-ansiBlue) !important;
-}
-`
-  const style = document.createElement('style');
-  style.innerText = css;
+function addAutoTheme(rootPath) {
+  const style = document.createElement('link');
+  style.rel = "stylesheet";
+  style.type = "text/css";
+  style.href = `${rootPath}/css/theme.css`;
   document.documentElement.appendChild(style)
 }
