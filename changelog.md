@@ -1,5 +1,20 @@
 # Change log
 
+# 2.9.6 2023-3-7
+
+- Reduce the size of the excel save notice.
+- Support resizing the view through ctrl/meta with mouse scrolling.
+- Word:
+
+  - Fix cannot display images.
+  - Fix pager jumping incorrectly.
+  - Reduce pagination navigator size.
+- Markdown:
+
+  - Support hide toolbar.
+  - Fix extension activation failure when rest client exists.
+  - Support open hyperlinks via meta or middle mouse button.
+
 # 2.9.5 2023-1-12
 
 - 更新主题的editorInlayHint颜色.

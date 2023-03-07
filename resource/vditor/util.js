@@ -98,8 +98,6 @@ export const toolbar = [
     "ordered-list",
     "check",
     "table",
-    "outdent",
-    "indent",
     "|",
     "quote",
     "line",
@@ -110,7 +108,6 @@ export const toolbar = [
     "redo",
     "|",
     "preview",
-    "info",
     "help",
 ]
 
@@ -121,7 +118,8 @@ export const openLink = () => {
     const clickCallback = e => {
         let ele = e.target;
         e.stopPropagation()
-        if (!e.ctrlKey && event.type != 'dblclick') {
+        const isSpecial = ['dblclick', 'auxclick'].includes(e.type)
+        if (!isCompose(e) && !isSpecial) {
             return;
         }
         if (ele.tagName == 'A') {
@@ -141,6 +139,7 @@ export const openLink = () => {
     const content = document.querySelector(".vditor-wysiwyg");
     content.addEventListener('dblclick', clickCallback);
     content.addEventListener('click', clickCallback);
+    content.addEventListener('auxclick', clickCallback);
     document.querySelector(".vditor-reset").addEventListener("scroll", e => {
         // 滚动有偏差
         handler.emit("scroll", { scrollTop: e.target.scrollTop - 70 })
@@ -253,7 +252,7 @@ export const imageParser = (viewAbsoluteLocal) => {
  * 自动补全符号
  */
 const keys = ['"', "{", "("];
-export const autoSymbal = (editor) => {
+export const autoSymbal = (handler, editor) => {
     let _exec = document.execCommand.bind(document)
     document.execCommand = (cmd, ...args) => {
         if (cmd === 'delete') {
@@ -265,7 +264,8 @@ export const autoSymbal = (editor) => {
         }
     }
     window.onkeydown = (e) => {
-        if (e.ctrlKey && e.code == "KeyV") {
+        if (e.code == 'F12') return handler.emit('developerTool')
+        if (isCompose(e) && e.code == "KeyV") {
             if (e.shiftKey) {
                 navigator.clipboard.readText().then(text => {
                     if (!text) return;
@@ -279,12 +279,12 @@ export const autoSymbal = (editor) => {
             return;
         }
         // 之前某个vscode版本有bug保存不了, 所以在这里触发, 不过现在不会了
-        // if (e.ctrlKey && e.code == "KeyS" && !e.shiftKey) {
+        // if (isCompose(e) && e.code == "KeyS" && !e.shiftKey) {
         //     vscodeEvent.emit("doSave", editor.getValue())
         //     e.stopPropagation()
         //     return;
         // }
-        if (keys.indexOf(e.key) == -1) {
+        if (!keys.includes(e.key)) {
             return;
         }
         const selectText = document.getSelection().toString();

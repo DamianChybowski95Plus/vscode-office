@@ -3,8 +3,8 @@
 <head>
     <style>
         body {
-            background-color: #fbfbfb ;
-            color: #3e3838 ;
+            background-color: #fbfbfb;
+            color: #3e3838;
             font-family: var(--vscode-font-family);
             font-weight: var(--vscode-font-weight);
             font-size: 14px;
@@ -24,7 +24,7 @@
             right: 60px;
         }
 
-        .paginationjs .paginationjs-pages{
+        .paginationjs .paginationjs-pages {
             max-width: 300px;
         }
 
@@ -52,7 +52,6 @@
     <div id="content">
         {{content}}
     </div>
-    <!-- <div id="top-btn" title="Scroll to top"></div> -->
 </body>
 
 <script>
@@ -69,48 +68,26 @@
         return result;
     }
 
+    // http://pagination.js.org/
     function initPaginition() {
         const total = document.body.scrollHeight / window.innerHeight
         $('#pagination').pagination({
             dataSource: createSerial(total),
             pageSize: 1,
-            pageRange: null,
+            pageRange: total > 15 ? 1 : null,
             showPageNumbers: true,
             showNavigator: true,
             showGoInput: true,
             showGoButton: true,
             callback: (data, pagination) => {
-                window.scrollTo(0, window.innerHeight * data[0]);
+                window.scrollTo(0, window.innerHeight * (data[0] - 1));
             }
         })
     }
 
 
-    window.onmousewheel = document.onmousewheel = e => {
-        if (!e.ctrlKey) {
-            return;
-        }
-        const ele = document.getElementById('content');
-        const zoom = ele.style.zoom ? parseInt(ele.style.zoom.replace("%", "")) : 100
-        if (e.deltaY > 0) {
-            ele.style.zoom = `${zoom - 5}%`;
-        } else {
-            ele.style.zoom = `${zoom + 5}%`;
-        }
-        initPaginition()
-    };
-
-    onload = () => {
-
-        initPaginition()
-
-        document.getElementById('top-btn').onclick = e => {
-            window.scrollTo(0, 0)
-        }
-
-
-    }
-
+    window.onload = initPaginition
+    zoomElement('#content')
 </script>
 
 </html>

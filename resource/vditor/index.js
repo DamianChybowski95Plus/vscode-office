@@ -14,6 +14,12 @@ handler.on("open", (md) => {
       enable: config.openOutline,
       position: 'left',
     },
+    toolbarConfig: {
+      hide: config.hideToolbar
+    },
+    cache: {
+      enable: false,
+    },
     mode: 'wysiwyg',
     lang: language == 'zh-cn' ? 'zh_CN' : config.editorLanguage,
     icon: "material",
@@ -63,10 +69,11 @@ handler.on("open", (md) => {
       onToolbarClick(editor)
     }
   })
-  autoSymbal(editor);
+  autoSymbal(handler,editor);
   createContextMenu(editor)
   imageParser(config.viewAbsoluteLocal)
   scrollEditor(md.scrollTop)
+  zoomElement('.vditor-content')
 }).emit("init")
 
 
