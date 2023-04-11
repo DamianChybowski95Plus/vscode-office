@@ -35,15 +35,26 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
         const ext = extname(uri.fsPath).toLowerCase()
         let htmlPath: string | null = null;
 
+
+        const send = () => {
+            handler.emit("open", {
+                ext: extname(uri.fsPath),
+                path: handler.panel.webview.asWebviewUri(uri).with({ query: `nonce=${Date.now().toString()}` }).toString(),
+            })
+        }
+
         const handler = Hanlder.bind(webviewPanel, uri);
-        if (ext.match(/\.(jpg|png|svg|gif|apng|bmp|ico|cur|jpeg|pjpeg|pjp|tif|tiff|webp)$/i)) {
+        handler
+            .on('developerTool', () => vscode.commands.executeCommand('workbench.action.toggleDevTools'))
+            .on("init", send)
+
+        if (ext.match(/\.(jpg|png|svg|gif|apng|bmp|ico|cur|jpeg|pjpeg|pjp|tif|webp)$/i)) {
             this.handleImage(uri, webview)
             handler.on("fileChange", () => {
                 this.handleImage(uri, webview)
             })
             return;
         }
-
 
         switch (ext) {
             case ".xlsx":
@@ -53,23 +64,22 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
             case ".ods":
                 htmlPath = this.handleXlsx(uri, handler)
                 break;
+            case ".docx":
+            case ".dotx":
+                htmlPath = 'word.html'
+                handler.on("fileChange", send)
+                break;
+            case ".pdf":
+                this.handlePdf(webview);
+                handler.on("fileChange", send)
+                break;
             case ".ttf":
             case ".woff":
             case ".otf":
-                this.handleFont(document, handler)
-                break;
-            case ".docx":
-            case ".dotx":
-                this.handleDocx(uri, webview)
+                this.handleFont(handler)
                 break;
             case ".class":
                 this.handleClass(uri, webviewPanel);
-                break;
-            case ".pdf":
-                this.handlePdf(uri, webview);
-                handler.on("fileChange", () => {
-                    this.handlePdf(uri, webview);
-                })
                 break;
             case ".htm":
             case ".html":
@@ -89,14 +99,67 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
 
     }
 
-    private handleDocx(uri: vscode.Uri, webview: vscode.Webview) {
-        require("mammoth").convertToHtml({ path: uri.fsPath })
-            .then((result: any) => {
-                const template = Util.buildPath(readFileSync(this.extensionPath + "/resource/word.html", 'utf8'), webview, this.extensionPath + "/resource")
-                webview.html = template.replace("{{content}}", result.value)
-                    .replace("$autoTheme", workspace.getConfiguration("vscode-office").get<boolean>("autoTheme") + '')
-            });
+
+    private handleImage(uri: vscode.Uri, webview: vscode.Webview) {
+
+        const folderPath = vscode.Uri.file(resolve(uri.fsPath, ".."));
+        const files = readdirSync(folderPath.fsPath)
+        let text = "";
+        let current=0;
+        let i = 0;
+        const currentFile = basename(uri.fsPath)
+        if (uri.scheme == 'git') {
+            const href = webview.asWebviewUri(uri);
+            text += `<a href="${href}" title="${basename(uri.fsPath)}"> <img src="${href}" > </a>`
+        } else {
+            for (const file of files) {
+                if (currentFile == file) {
+                    current = i;
+                }
+                if (file.match(/\.(jpg|png|svg|gif|apng|bmp|ico|cur|jpeg|pjpeg|pjp|tif|tiff|webp)$/i)) {
+                    i++;
+                    const resUri = vscode.Uri.file(folderPath.fsPath + "/" + file);
+                    const resource = webview.asWebviewUri(resUri).with({ query: `nonce=${Date.now().toString()}` }).toString();
+                    text += `<a href="${resource}" title="${file}"> <img src="${resource}" > </a>`
+                }
+            }
+        }
+
+        webview.html =
+            Util.buildPath(readFileSync(this.extensionPath + "/resource/lightgallery/lg.html", 'utf8'), webview, this.extensionPath + "/resource/lightgallery")
+                .replace("{{content}}", text).replace("{{current}}", `${current}`);
     }
+
+
+    private handlePdf(webview: vscode.Webview) {
+        const baseUrl = webview.asWebviewUri(vscode.Uri.file(this.extensionPath + "/resource/pdf"))
+            .toString().replace(/\?.+$/, '').replace('https://git', 'https://file');
+        webview.html = readFileSync(this.extensionPath + "/resource/pdf/viewer.html", 'utf8').replace("{{baseUrl}}", baseUrl)
+    }
+
+    private handleFont(handler: Hanlder) {
+        const webview = handler.panel.webview;
+        webview.html = Util.buildPath(
+            readFileSync(`${this.extensionPath}/resource/font/index.html`, 'utf8'),
+            webview, `${this.extensionPath}/resource/font`
+        )
+    }
+
+
+    private handleXlsx(uri: vscode.Uri, handler: Hanlder) {
+        const enc = new TextEncoder();
+        handler.on("save", async (content) => {
+            Util.confirm(`Save confirm`, 'Are you sure you want to save? this will lose all formatting.', async () => {
+                await vscode.workspace.fs.writeFile(uri, new Uint8Array(content))
+                handler.emit("saveDone")
+            })
+        }).on("saveCsv", async (content) => {
+            await vscode.workspace.fs.writeFile(uri, enc.encode(content))
+            handler.emit("saveDone")
+        })
+        return "excel.html"
+    }
+
 
     private async handleClass(uri: vscode.Uri, panel: vscode.WebviewPanel) {
         if (uri.scheme != "file") {
@@ -125,85 +188,6 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
             Output.log(data.toString("utf8"))
         });
 
-
-    }
-
-
-    private handleImage(uri: vscode.Uri, webview: vscode.Webview) {
-
-        const folderPath = vscode.Uri.file(resolve(uri.fsPath, ".."));
-        const files = readdirSync(folderPath.fsPath)
-        let text = "";
-        let current;
-        let i = 0;
-        const currentFile = basename(uri.fsPath)
-        for (const file of files) {
-            if (currentFile == file) {
-                current = i;
-            }
-            if (file.match(/\.(jpg|png|svg|gif|apng|bmp|ico|cur|jpeg|pjpeg|pjp|tif|tiff|webp)$/i)) {
-                i++;
-                const resUri = vscode.Uri.file(folderPath.fsPath + "/" + file);
-                const resource = webview.asWebviewUri(resUri).with({ query: `nonce=${Date.now().toString()}` }).toString();
-                text += `<a href="${resource}" title="${file}"> <img src="${resource}" > </a>`
-            }
-        }
-
-
-
-        webview.html =
-            Util.buildPath(readFileSync(this.extensionPath + "/resource/lightgallery/lg.html", 'utf8'), webview, this.extensionPath + "/resource/lightgallery")
-                .replace("{{content}}", text).replace("{{current}}", current);
-    }
-
-
-    private handlePdf(uri: vscode.Uri, webview: vscode.Webview) {
-        const baseUrl = webview.asWebviewUri(vscode.Uri.file(this.extensionPath + "/resource/pdf"))
-            .toString().replace(/\?.+$/, '').replace('https://git', 'https://file');
-        const config = JSON.stringify({
-            path: webview.asWebviewUri(uri).with({ query: `nonce=${Date.now().toString()}` }).toString(),
-            defaults: {
-                cursor: "select",
-                scale: "auto",
-                sidebar: true,
-                scrollMode: "vertical",
-                spreadMode: "none",
-            }
-        }).replace(/"/g, '&quot;');
-        webview.html = readFileSync(this.extensionPath + "/resource/pdf/viewer.html", 'utf8')
-            .replace("{{baseUrl}}", baseUrl).replace("{{content}}", config);
-    }
-
-    private handleFont(document: vscode.CustomDocument, handler: Hanlder) {
-        const webview = handler.panel.webview;
-        handler.on("init", () => {
-            handler.emit('open', { href: webview.asWebviewUri(document.uri).toString() })
-        })
-        webview.html =
-            Util.buildPath(
-                readFileSync(this.extensionPath + "/resource/font/index.html", 'utf8')
-                , webview, this.extensionPath + "/resource/font"
-            )
-    }
-
-
-    private handleXlsx(uri: vscode.Uri, handler: Hanlder) {
-        var enc = new TextEncoder();
-        handler.on("init", async () => {
-            handler.emit("open", {
-                path: handler.panel.webview.asWebviewUri(uri).with({ query: `nonce=${Date.now().toString()}` }).toString(),
-                file: resolve(uri.fsPath), ext: extname(uri.fsPath)
-            })
-        }).on("save", async (content) => {
-            Util.confirm(`Save confirm`, 'Are you sure you want to save? this will lose all formatting.', async () => {
-                await vscode.workspace.fs.writeFile(uri, new Uint8Array(content))
-                handler.emit("saveDone")
-            })
-        }).on("saveCsv", async (content) => {
-            await vscode.workspace.fs.writeFile(uri, enc.encode(content))
-            handler.emit("saveDone")
-        })
-        return "excel.html"
     }
 
 }

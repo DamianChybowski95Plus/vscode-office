@@ -1,5 +1,26 @@
 # Change log
 
+# 3.0.4 2023-4-11
+
+- Modify the background color of the theme.
+
+# 3.0.2 2023-4-5
+
+- Update extension icon.
+
+# 3.0.1 2023-4-3
+
+- Fix git view cannot view pictures.
+- Support for reloading workspace docx after file changes.
+- PDF:
+  - Fixed sometimes opening PDF failed.
+  - Do not display the sidebar on small screens.
+  - Support export markdown to pdf without outline.
+
+# 3.0.0 2023-3-29
+
+- Better docx rendering.
+
 # 2.9.6 2023-3-7
 
 - Reduce the size of the excel save notice.

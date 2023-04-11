@@ -5,6 +5,7 @@
 This extension supports previewing these common office file formats.
 
 - Excel: .xls, .xlsx, .csv
+- Word: .docx
 - Svg: .svg
 - Pdf: .pdf
 - Font: .ttf, .otf, .woff
@@ -39,3 +40,13 @@ Usages:
 ## HTML
 
 The html editor supports live viewing.   Press ctrl+shift+v to open the live view.
+
+## Credits
+
+- PDF rendering: [mozilla/pdf.js/](https://github.com/mozilla/pdf.js/)
+- Docx rendering: [VolodymyrBaydalka/docxjs](https://github.com/VolodymyrBaydalka/docxjs)
+- XLSX rendering:
+  - [SheetJS/sheetjs](https://github.com/SheetJS/sheetjs): XLSX parsing
+  - [myliang/x-spreadsheet](https://github.com/myliang/x-spreadsheet): XLSX rendering
+- HTTP: [Rest  Client](https://github.com/Huachao/vscode-restclient)
+- Markdown: [Vanessa219/vditor](https://github.com/Vanessa219/vditor)

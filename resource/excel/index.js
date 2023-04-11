@@ -26,12 +26,14 @@ const convert = wb => {
     return { sheets, maxLength, maxCols };
 };
 
-function open(buffer, ext) {
+let sheetIns = null;
+
+function loadSheet(buffer, ext) {
     (async () => {
         const ab = new Uint8Array(buffer).buffer
         const wb = ext.toLowerCase() == ".csv" ? XLSX.read(new TextDecoder("utf-8").decode(ab), { type: "string", raw: true }) : XLSX.read(ab, { type: "array" });
         var { sheets, maxLength, maxCols } = convert(wb);
-        window.s = x_spreadsheet("#xspreadsheet", {
+        sheetIns = sheetIns|| x_spreadsheet("#xspreadsheet", {
             row: {
                 len: maxLength + 50,
                 height: 30,
@@ -42,18 +44,19 @@ function open(buffer, ext) {
             style: {
                 align: 'center'
             }
-        }).loadData(sheets);
+        })
+        sheetIns.loadData(sheets);
     })();
 }
 
-let fileName;
+let extName;
 vscodeEvent.emit("init")
-vscodeEvent.on("open", ({ file, path, ext }) => {
-    fileName = file
-    fetch(path).then(response => response.arrayBuffer()).then(res => { open(res, ext) })
+vscodeEvent.on("open", ({ path, ext }) => {
+    extName = ext.replace('.', '');
+    fetch(path).then(response => response.arrayBuffer()).then(res => { loadSheet(res, ext) })
     console.log(path)
 }).on("saveDone", () => {
-    notie.alert({ type: 1, text: 'Save Success!'}) 
+    notie.alert({ type: 1, text: 'Save Success!' })
 })
 
 function dataToSheet(xws) {
@@ -83,14 +86,13 @@ function xtos(sdata) {
 }
 
 function export_xlsx() {
-    const extName = fileName.split('.').pop().toLowerCase();
-    if (extName == 'xlsx' || extName == 'xls' || extName == 'ods') {
-        var new_wb = xtos(s.getData());
+    if (['xlsx', 'xls', 'ods'].includes(extName)) {
+        var new_wb = xtos(sheetIns.getData());
         var buffer = XLSX.write(new_wb, { bookType: extName, type: "array" });
         const array = [...new Uint8Array(buffer)];
         vscodeEvent.emit('save', array)
     } else if (extName == "csv") {
-        const csvContent = XLSX.utils.sheet_to_csv(dataToSheet(s.getData()[0]));
+        const csvContent = XLSX.utils.sheet_to_csv(dataToSheet(sheetIns.getData()[0]));
         vscodeEvent.emit('saveCsv', csvContent)
     }
 };
