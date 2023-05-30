@@ -9,7 +9,7 @@
 - 支持多窗口打开markdown (typora只支持mac)
 - 相比typora的缺点: 对html代码, 代码块和图形支持不友好.
 
-扩展名字叫做Office Viewer因为最初是为了增强VSCode的预览功能, 支持预览xlsx, docx, svg, pdf等格式, 后来才增加markdown编辑器, 同时为了精简本人安装的扩展, 集成了一个图标主题和颜色主题.
+扩展名字叫做Office Viewer因为最初是为了增强VSCode的预览功能, 支持预览xlsx, docx, svg, pdf, zip等格式, 后来才增加markdown编辑器, 同时为了精简本人安装的扩展, 集成了一个图标主题和颜色主题.
 
 使用说明:
 
@@ -20,8 +20,8 @@
 - 可通过ctrl/meta+鼠标滚动来调整视图大小
 - 点击以下按钮可打开VSCode内置编辑器.
   ![img](image/README-CN/1640579182342.png)
-- 点击以下按钮可导出为PDF, 需要机器上有安装Chrome或Edge, 可通过设置 `vscode-office.chromiumPath`指定浏览器位置, 导出的第一页是目录, 用于辅助生成书签.
-  ![img](image/README-CN/1640579380584.png)
+- 在编辑器打开右键菜单可将markdown导出为pdf, docx或者html, pdf依赖于chromium, 可通过 `vscode-office.chromiumPath`配置chromium浏览器路径.
+  ![1685418034035](image/README-CN/1685418034035.png)
 
 ## 其他功能
 

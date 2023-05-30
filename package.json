@@ -2,7 +2,7 @@
 	"name": "vscode-typora",
 	"displayName": "Typora",
 	"description": "Edit markdown like typora in vscode.",
-	"version": "3.1.2",
+	"version": "3.1.6",
 	"publisher": "cweijan",
 	"icon": "images/typora.png",
 	"engines": {
@@ -377,6 +377,18 @@
 					},
 					{
 						"filenamePattern": "*.webp"
+					},
+					{
+						"filenamePattern": "*.jar"
+					},
+					{
+						"filenamePattern": "*.zip"
+					},
+					{
+						"filenamePattern": "*.apk"
+					},
+					{
+						"filenamePattern": "*.vsix"
 					}
 				]
 			},
@@ -528,7 +540,7 @@
 	},
 	"scripts": {
 		"dev": "rimraf out && node build.js",
-		"build": "rimraf out && node build.js --mode=production",
+		"build": "rimraf out && cd packages/zip-viewer && npm run build && cd ../.. && node build.js --mode=production",
 		"package": "vsce package --no-dependencies",
 		"publish": "vsce publish --no-dependencies",
 		"vscode:prepublish": "npm run build"
@@ -542,8 +554,12 @@
 		"rimraf": "^3.0.2"
 	},
 	"dependencies": {
+		"@types/adm-zip": "^0.5.0",
+		"adm-zip": "^0.5.10",
+		"axios": "^1.4.0",
 		"cheerio": "^1.0.0-rc.3",
 		"chrome-finder": "^1.0.7",
+		"date-format": "^4.0.14",
 		"file-type": "^18.0.0",
 		"highlight.js": "^10.1.2",
 		"katex": "^0.16.2",
@@ -554,7 +570,7 @@
 		"markdown-it-toc-done-right": "^4.2.0",
 		"mustache": "^4.0.1",
 		"pdf-lib": "^1.11.2",
-		"puppeteer-core": "^19.0.0",
+		"puppeteer-core": "^1.20.0",
 		"vscode-html-to-docx": "^1.1.2"
 	}
 }

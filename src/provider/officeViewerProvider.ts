@@ -1,13 +1,16 @@
+import { ZipService } from '@/service/zip/zipService';
+import axios from 'axios';
 import { spawn } from 'child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync } from 'fs';
+import { tmpdir } from 'os';
 import { basename, extname, parse, resolve } from 'path';
 import { TextEncoder } from 'util';
 import * as vscode from 'vscode';
+import { workspace } from 'vscode';
 import { Hanlder } from '../common/handler';
 import { Output } from '../common/Output';
 import { Util } from '../common/util';
-import { tmpdir } from 'os';
-import { workspace } from 'vscode';
+import { ViewManager } from '@/common/viewManager';
 
 /**
  * support view office files
@@ -52,6 +55,8 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
             this.handleImage(uri, webview)
             handler.on("fileChange", () => {
                 this.handleImage(uri, webview)
+            }).on('developerTool', () => {
+                vscode.commands.executeCommand('workbench.action.toggleDevTools')
             })
             return;
         }
@@ -68,6 +73,12 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
             case ".dotx":
                 htmlPath = 'word.html'
                 handler.on("fileChange", send)
+                break;
+            case ".jar":
+            case ".zip":
+            case ".apk":
+            case ".vsix":
+                this.handleZip(webview, uri, handler);
                 break;
             case ".pdf":
                 this.handlePdf(webview);
@@ -99,13 +110,19 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
 
     }
 
+    async handleZip(webview: vscode.Webview, uri: vscode.Uri, handler: Hanlder) {
+        let data = await ViewManager.readContent()
+        data = await ViewManager.buildPath(data, webview);
+        webview.html = data
+        new ZipService(uri, handler).bind();
+    }
 
     private handleImage(uri: vscode.Uri, webview: vscode.Webview) {
 
         const folderPath = vscode.Uri.file(resolve(uri.fsPath, ".."));
         const files = readdirSync(folderPath.fsPath)
         let text = "";
-        let current=0;
+        let current = 0;
         let i = 0;
         const currentFile = basename(uri.fsPath)
         if (uri.scheme == 'git') {

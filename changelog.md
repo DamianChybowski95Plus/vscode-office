@@ -1,5 +1,13 @@
 # Change log
 
+# 3.1.5 2023-5-18
+
+- Support view apk file.
+
+# 3.1.4 2023-5-4
+
+- Support view zip file.
+
 # 3.1.2 2023-4-25
 
 - Change inactive tab foreground color.
