@@ -9,6 +9,7 @@ import path, { dirname, extname, isAbsolute, join, parse } from 'path';
 import * as vscode from 'vscode';
 import { Holder } from './markdown/holder';
 import { convertMd } from "./markdown/markdown-pdf";
+import { Global } from "@/common/global";
 
 export type ExportType = 'pdf' | 'html' | 'docx';
 
@@ -40,8 +41,7 @@ export class MarkdownService {
     }
 
     public getConfig(option: ExportOption) {
-        const config = vscode.workspace.getConfiguration("vscode-office");
-        const top = config.get("pdfMarginTop")
+        const top = Global.getConfig("pdfMarginTop")
         const { type = 'pdf', withoutOutline = false } = option;
         return {
             type,
@@ -63,12 +63,13 @@ export class MarkdownService {
         "C:\\Program Files (x86)\\Microsoft\\Edge Beta\\Application\\msedge.exe",
         "C:\\Program Files (x86)\\Microsoft\\Edge Dev\\Application\\msedge.exe",
         join(homedir(), "AppData\\Local\\Microsoft\\Edge SxS\\Application\\msedge.exe"),
-        "/Applications/Microsoft/Edge.app",
+        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
         "/usr/bin/microsoft-edge",
     ]
 
     private getChromiumPath() {
-        const chromiumPath = vscode.workspace.getConfiguration("vscode-office").get<string>("chromiumPath")
+        const chromiumPath = Global.getConfig<string>("chromiumPath")
         const paths = [chromiumPath, ...this.paths]
         for (const path of paths) {
             if (existsSync(path)) {
@@ -81,8 +82,9 @@ export class MarkdownService {
             console.debug(`using chrome path is ${chromePath}`)
             return chromePath;
         } catch (e) {
-            vscode.window.showErrorMessage("Not chromium found, export fail.")
-            throw new Error()
+            const msg = "Not chromium found, export fail.";
+            vscode.window.showErrorMessage(msg)
+            throw new Error(msg)
         }
     }
 
@@ -99,7 +101,8 @@ export class MarkdownService {
         }
 
         const uri = document.uri;
-        let { relPath, fullPath } = adjustImgPath(uri)
+        const info = adjustImgPath(uri), { fullPath } = info;
+        let { relPath } = info;
         const imagePath = isAbsolute(fullPath) ? fullPath : `${dirname(uri.fsPath)}/${relPath}`.replace(/\\/g, "/");
         this.createImgDir(imagePath);
         this.saveClipboardImageToFileAndGetPath(imagePath, async (savedImagePath) => {
@@ -119,7 +122,7 @@ export class MarkdownService {
             }
             if (editor) {
                 editor?.edit(edit => {
-                    let current = editor.selection;
+                    const current = editor.selection;
                     if (current.isEmpty) {
                         edit.insert(current.start, `![${imgName}](${relPath})`);
                     } else {
@@ -137,12 +140,12 @@ export class MarkdownService {
      * 如果粘贴板内是复制了一个文件, 取得路径进行复制
      */
     private copyFromPath(savedImagePath: string, targetPath: string) {
-        if (savedImagePath.startsWith("copyed:")) {
-            const copyedFile = savedImagePath.replace("copyed:", "");
-            if (lstatSync(copyedFile).isDirectory()) {
+        if (savedImagePath.startsWith("copied:")) {
+            const copiedFile = savedImagePath.replace("copied:", "");
+            if (lstatSync(copiedFile).isDirectory()) {
                 vscode.window.showErrorMessage('Not support paste directory.');
             } else {
-                copyFileSync(copyedFile, targetPath);
+                copyFileSync(copiedFile, targetPath);
             }
         }
     }
@@ -156,7 +159,7 @@ export class MarkdownService {
 
     private saveClipboardImageToFileAndGetPath(imagePath: string, cb: (value: string) => void) {
         if (!imagePath) return;
-        let platform = process.platform;
+        const platform = process.platform;
         if (platform === 'win32') {
             // Windows
             const scriptPath = path.join(this.context.extensionPath, '/lib/pc.ps1');
@@ -177,8 +180,8 @@ export class MarkdownService {
             });
         } else if (platform === 'darwin') {
             // Mac
-            let scriptPath = path.join(this.context.extensionPath, './lib/mac.applescript');
-            let ascript = spawn('osascript', [scriptPath, imagePath]);
+            const scriptPath = path.join(this.context.extensionPath, './lib/mac.applescript');
+            const ascript = spawn('osascript', [scriptPath, imagePath]);
             ascript.on('exit', function (code, signal) {
             });
             ascript.stdout.on('data', function (data) {
@@ -186,13 +189,13 @@ export class MarkdownService {
             });
         } else {
             // Linux 
-            let scriptPath = path.join(this.context.extensionPath, './lib/linux.sh');
+            const scriptPath = path.join(this.context.extensionPath, './lib/linux.sh');
 
-            let ascript = spawn('sh', [scriptPath, imagePath]);
+            const ascript = spawn('sh', [scriptPath, imagePath]);
             ascript.on('exit', function (code, signal) {
             });
             ascript.stdout.on('data', function (data) {
-                let result = data.toString().trim();
+                const result = data.toString().trim();
                 if (result == "no xclip") {
                     vscode.window.showInformationMessage('You need to install xclip command first.');
                     return;
@@ -200,6 +203,11 @@ export class MarkdownService {
                 cb(result);
             });
         }
+    }
+
+    public switchEditor(uri: vscode.Uri) {
+        const type = vscode.window.activeTextEditor ? 'cweijan.markdownViewer' : 'default';
+        vscode.commands.executeCommand('vscode.openWith', uri, type);
     }
 
 }

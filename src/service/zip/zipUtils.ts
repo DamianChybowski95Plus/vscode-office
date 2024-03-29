@@ -1,7 +1,8 @@
-import AdmZip from "adm-zip";
+import AdmZip from "@/bundle/adm-zip";
 import format from 'date-format';
 import { basename } from "path";
 import prettyBytes from "./pretty-bytes";
+type ZipEntry = AdmZip.IZipEntry;
 
 interface ZipParseResult {
     zip: AdmZip
@@ -10,8 +11,8 @@ interface ZipParseResult {
     folderMap: { [fullPath: string]: ZipEntry }
 }
 
-export function parseZipAsTree(zipData: Buffer): ZipParseResult {
-    const zip = new AdmZip(zipData);
+export function parseZipAsTree(zipData: Buffer, option?: Partial<AdmZip.InitOptions>): ZipParseResult {
+    const zip = new AdmZip(zipData, option);
     const zipEntries = zip.getEntries().filter(e => e.name);
 
     let files: ZipEntry[] = []
@@ -21,11 +22,12 @@ export function parseZipAsTree(zipData: Buffer): ZipParseResult {
 
     function parseFlatItems(entrys: ZipEntry[]) {
         for (const origin of entrys) {
-            if (!origin.isDirectory) fileMap[origin.entryName] = origin
+            const entryName = origin.entryName;
+            if (!origin.isDirectory) fileMap[entryName] = origin
             const entry = origin.isDirectory ? origin : {
                 isDirectory: origin.isDirectory,
                 name: origin.name,
-                entryName: origin.entryName,
+                entryName,
                 header: origin.header,
                 // 原始数据
                 originFileSize: origin.header?.size,

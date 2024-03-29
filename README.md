@@ -1,6 +1,6 @@
 # vscode-office
 
-[中文说明](README-CN.md)
+[简体中文](README-CN.md) | [繁體中文](README-TW.md)
 
 This extension supports previewing these common office file formats.
 
@@ -8,20 +8,15 @@ This extension supports previewing these common office file formats.
 - Word: .docx
 - Svg: .svg
 - Pdf: .pdf
-- Font: .ttf, .otf, .woff
+- Font: .ttf, .otf, .woff, .woff2
 - Markdown: .md
 - HttpRequest: .http
 - Windows Reg: .reg
 - Compressed file: .zip, .jar, .vsix
 
-If it helps you, consider star this repository (●'◡'●).
-
 ## Markdown
 
-This extension changes the default markdown editor to the excellent vditor:
-
-- A WYSIWYG editor for markdown.
-- Which provides export to pdf, html or contextmenu(via right click in the document).
+This extension changes the default markdown editor to the vditor.
 
 If you want to use the original vscode editor, insert this in your `settings.json`.
 
@@ -33,14 +28,27 @@ If you want to use the original vscode editor, insert this in your `settings.jso
 }
 ```
 
-Usages:
+Shortcuts: Base on [Vditor shortcuts](shortcut.md) and more:
 
-- Resize editor via ctrl/meta+mouse scroll.
+- Move list up: `Ctrl Alt I` / `⌥ ⇧ I`
+- Move list down: `Ctrl Alt J` / `⌥ ⇧ J`
+- Edit in VS Code: `Ctrl Alt E` / `⌥ ⇧ E`
+
+Tips:
+
+- Resize editor via ctrl/cmd+mouse scroll.
 - Hyperlinks can be opened by ctrl/meta+click or double-click.
 
 ## HTML
 
 The html editor supports live viewing.   Press ctrl+shift+v to open the live view.
+
+## Sponsor
+
+[![Database Client](https://database-client.com/logo_vscode.png)](https://marketplace.visualstudio.com/items?itemName=cweijan.vscode-database-client2)
+
+Database Client for VS Code, supports connect to **MySQL/MariaDB, PostgreSQL, SQLite, Redis** and  **ElasticSearch**, and works as an **SSH** client, boost your maximum productivity! [Get it now](https://marketplace.visualstudio.com/items?itemName=cweijan.vscode-database-client2).
+
 
 ## Credits
 

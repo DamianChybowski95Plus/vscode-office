@@ -2,25 +2,34 @@
 
 ## 介绍
 
-该扩展在vscode内集成[Vditor](https://github.com/Vanessa219/vditor)(针对VSCode做了些[兼容性改动](https://github.com/vscode-ext-studio/vditor)), 实现了对markdown的所见即所得编辑, 相比typora的优缺点:
+功能:
 
-- 开源免费无广告无隐私追踪 (如果对你有帮助考虑点下star(●'◡'●))
-- vscode内置git支持, 创建一个git仓库就可以对markdown进行版本管理
-- 支持多窗口打开markdown (typora只支持mac)
-- 相比typora的缺点: 对html代码, 代码块和图形支持不友好.
+- 集成了一个图标主题和颜色主题.
+- 支持预览xlsx, docx, svg, pdf, zip等办公文件格式.
+- 开源免费无广告(如果对你有帮助考虑点下star(●'◡'●))
+- 集成[Vditor](https://github.com/Vanessa219/vditor)实现对markdown的所见即所得编辑(对代码块支持较差).
 
-扩展名字叫做Office Viewer因为最初是为了增强VSCode的预览功能, 支持预览xlsx, docx, svg, pdf, zip等格式, 后来才增加markdown编辑器, 同时为了精简本人安装的扩展, 集成了一个图标主题和颜色主题.
+## 最佳实践
 
-使用说明:
+和扩展[Git History Graph](https://marketplace.visualstudio.com/items?itemName=LinJun.git-graph-pro)一起使用, 安装[Git History Graph](https://marketplace.visualstudio.com/items?itemName=LinJun.git-graph-pro)后会在git面板增加一个同步按钮, 点击后会立刻对笔记进行同步, 不再需要你手动同步笔记.
+
+![1711182793554](image/README-CN/1711182793554.png)
+
+## Markdown
+
+编辑器使用说明: [禁用方式看这里](https://github.com/cweijan/vscode-office?tab=readme-ov-file#markdown)
 
 - 编辑方式: 直接通过vscode打开md文件.
-- 通过ctrl/meta+单击或者双击可打开超链接.
-- 配置 `vscode-office.autoTheme": false`可将编辑器设置为亮白色.
-- 可通过ctrl/meta+鼠标滚动来调整视图大小
-- 点击以下按钮可打开VSCode内置编辑器.
+- 可通过工具栏按钮打开VSCode内置编辑器.
   ![img](image/README-CN/1640579182342.png)
 - 在编辑器打开右键菜单可将markdown导出为pdf, docx或者html, pdf依赖于chromium, 可通过 `vscode-office.chromiumPath`配置chromium浏览器路径.
   ![1685418034035](image/README-CN/1685418034035.png)
+
+快捷键: 基于[Vditor快捷键](shortcut.md)以及更多:
+
+- 将列表上移一行: `Ctrl Alt I` / `⌥ ⇧ I`
+- 将列表下移一行: `Ctrl Alt J` / `⌥ ⇧ J`
+- 在VS Code中编辑: `Ctrl Alt E` / `⌥ ⇧ E`
 
 ## 其他功能
 
@@ -29,6 +38,12 @@
 - HTML: 编辑HTML的过程中按下ctrl+shift+v可实时预览.
 - PDF: 支持直接预览pdf文件
 - HTTP: 用于发送http请求, 由于REST Client本地请求有bug, 修改后进行集成.
+
+## Sponsor
+
+[![Database Client](https://database-client.com/logo_vscode.png)](https://marketplace.visualstudio.com/items?itemName=cweijan.vscode-database-client2)
+
+适用于VS Code的数据库客户端, 支持**MySQL/MariaDB, PostgreSQL, SQLite, Redis**以及**ElasticSearch**, 且可作为一个SSH客户端, 最大程度地提高你的生产力! [立刻安装](https://marketplace.visualstudio.com/items?itemName=cweijan.vscode-database-client2).
 
 ## Credits
 

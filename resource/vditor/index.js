@@ -1,10 +1,25 @@
-import { openLink, hotKeys, imageParser, toolbar, autoSymbal, onToolbarClick, createContextMenu, scrollEditor } from "./util.js";
+import { openLink, hotKeys, imageParser, getToolbar, autoSymbol, onToolbarClick, createContextMenu, scrollEditor } from "./util.js";
 
-handler.on("open", (md) => {
-  const { config, language } = md;
-  if (config.autoTheme) {
-    addAutoTheme(md.rootPath)
+let state;
+function loadConfigs() {
+  const elem = document.getElementById('configs')
+  try {
+    state = JSON.parse(elem.getAttribute('data-config'));
+    const { platform } = state;
+    document.getElementById('vditor').classList.add(platform)
+  } catch (error) {
+    console.log('loadConfigFail')
   }
+  return state;
+}
+loadConfigs()
+
+handler.on("open", async (md) => {
+  const { config, language } = md;
+  addAutoTheme(md.rootPath, config.editorTheme)
+  handler.on('theme', theme => {
+    loadTheme(md.rootPath, theme)
+  })
   const editor = new Vditor('vditor', {
     value: md.content,
     _lutePath: md.rootPath + '/lute.min.js',
@@ -42,7 +57,7 @@ handler.on("open", (md) => {
         "inlineDigit": true
       }
     },
-    toolbar,
+    toolbar: await getToolbar(md.rootPath),
     extPath: md.rootPath,
     input(content) {
       handler.emit("save", content)
@@ -69,7 +84,7 @@ handler.on("open", (md) => {
       onToolbarClick(editor)
     }
   })
-  autoSymbal(handler,editor);
+  autoSymbol(handler, editor);
   createContextMenu(editor)
   imageParser(config.viewAbsoluteLocal)
   scrollEditor(md.scrollTop)
@@ -77,10 +92,19 @@ handler.on("open", (md) => {
 }).emit("init")
 
 
-function addAutoTheme(rootPath) {
+function addAutoTheme(rootPath, theme) {
+  loadCSS(rootPath, 'base.css')
+  loadTheme(rootPath, theme)
+}
+
+function loadTheme(rootPath, theme) {
+  loadCSS(rootPath, `theme/${theme}.css`)
+}
+
+function loadCSS(rootPath, path) {
   const style = document.createElement('link');
   style.rel = "stylesheet";
   style.type = "text/css";
-  style.href = `${rootPath}/css/theme.css`;
+  style.href = `${rootPath}/css/${path}`;
   document.documentElement.appendChild(style)
 }

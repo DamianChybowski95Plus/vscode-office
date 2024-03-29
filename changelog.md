@@ -1,5 +1,39 @@
 # Change log
 
+# 3.3.0 2024-3-29
+
+- Rewrite the UI front end using React.
+
+# 3.2.5 2024-3-8
+
+- Add shortcut document.
+- Update editor switch icon.
+- Fix load chinese zip entry failed.
+
+# 3.2.4 2024-3-5
+
+New:
+
+- Support view woff2 font.
+- Support modifying editor theme individually.
+
+Markdown
+
+- Follow vscode editor font size.
+- Add button to quick switch markdown editor.
+
+Other:
+
+- Support edit in vscode for csv.
+- Support edit in vscode for svg.
+- Only use image viewer for svg.
+
+# 3.2.0 2024-3-4
+
+- Use vscode default editor when diffing.
+- Fix cannot save outline state for macOS.
+- Fix cannot find chromium path on macOS.
+
 # 3.1.7 2023-9-32
 
 - Fix export markdown to docx fail.
